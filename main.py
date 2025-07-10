@@ -1,57 +1,58 @@
-#from file import *
-
-with open("edgesbrasil58.tsp", "r") as objArq:
-  linha = objArq.readLines()
-  
-#se você quiser uma lista onde cada objeto será uma string
-#grande representando uma linha do arquivo:
-#listaLinhas = objArq.readlines() #obs: cada linha terah um enter junto com o ultimo elemento
-
+import os
 distancias = {}
 
-for i in range(1, 58): #linhas 1 a 57 pois a 58 nao terá aresta
-	linha = objArq.readline() #le só uma linha do arquivo
-	#transformando a linha em lista de strings:
-	lista = linha.split() #obs: lista de strings (não int)
+try:
+	with open("edgesbrasil58.tsp", "r") as objArq:
+    		linhas = objArq.readlines()
+except FileNotFoundError:
+	print("Erro: o arquivo 'edgesbrasil58.tsp' não foi encontrado!")
+except Exception as e:
+	print("Error : {e}")
 
-	for j in range(i+1, 59): #colunas i+1 a 58
-		if len(lista) > 0:
-			peso = int(lista.pop(0)) #obs: peso int, poderia ser float em outro problema
-		else:
-			print(f"Erro! linha {i} do arquivo não possui elementos suficientes")
-			exit()
-		#gravando a aresta em (i, j) e (j, i):
-		distancias[(i,j)] = peso
-		distancias[(j,i)] = peso
-objArq.close()
+# As linhas do arquivo contêm a parte triangular superior da matriz de distâncias
+indice_linha = 0
+for i in range(1, 58):  # Linhas 1 a 57 (não inclui a 58)
+    linha = linhas[indice_linha].strip()
+    indice_linha += 1
 
-#funcao que retorna o custo total do caminho:
+    lista = linha.split()  # Quebra a linha em uma lista de strings
+
+    for j in range(i + 1, 59):  # j vai de i+1 até 58
+        if lista:
+            peso = int(lista.pop(0))  # Converte o peso para inteiro
+            distancias[(i, j)] = peso
+            distancias[(j, i)] = peso
+        else:
+            print(f"Erro! Linha {i} do arquivo não possui elementos suficientes.")
+            exit()
+
+# Função que retorna o custo total de um caminho (ciclo fechado)
 def custoCaminho(permutacao, dicDistancias):
-	#ex: permutacao = [5, 14, 2, 3, 7, ...]
-	soma = 0
-	for i in range(len(permutacao)-1):
-		a = permutacao[i]
-		b = permutacao[i+1]
-		if (a,b) in dicDistancias:
-			soma += dicDistancias[(a,b)]
-		else:
-			print(f"Erro! ({a},{b}) não existe no dicionario!")
-			exit()
-	soma += dicDistancias[(permutacao[-1],permutacao[0])]
-	return soma
-	
-def inicializaPopulacao(tamanho, qtdeCidades):
-	import random
-	#criando uma lista com "tamanho" permutacoes aleatorias de cidades:
-	lista = []
-	for i in range(tamanho):
-		individuo = list(range(1, qtdeCidades+1))
-		random.shuffle(individuo)
-		lista.append(individuo)
-	return lista
+    soma = 0
+    for i in range(len(permutacao) - 1):
+        a = permutacao[i]
+        b = permutacao[i + 1]
+        if (a, b) in dicDistancias:
+            soma += dicDistancias[(a, b)]
+        else:
+            print(f"Erro! ({a},{b}) não existe no dicionário!")
+            exit()
+    soma += dicDistancias[(permutacao[-1], permutacao[0])]  # Volta ao início
+    return soma
 
+# Gera uma população de caminhos aleatórios (permutação das cidades)
+def inicializaPopulacao(tamanho, qtdeCidades):
+    import random
+    lista = []
+    for _ in range(tamanho):
+        individuo = list(range(1, qtdeCidades + 1))
+        random.shuffle(individuo)
+        lista.append(individuo)
+    return lista
+
+# Calcula o custo de cada indivíduo da população
 def calculaAptidao(populacao):
-	listaAptidao = []
-	for elem in populacao:
-		listaAptidao.append(custoCaminho(elem, distancias))
-	return listaAptidao
+    listaAptidao = []
+    for elem in populacao:
+        listaAptidao.append(custoCaminho(elem, distancias))
+    return listaAptidao
