@@ -58,7 +58,7 @@ def calculaAptidao(populacao):
         listaAptidao.append(custoCaminho(elem, distancias))
     return listaAptidao
 
-def selecaoPorRanking(populacao, aptidoes, tamanho_torneio=3):
+def torneio(populacao, aptidoes, tamanho_torneio=3):
 
     # Seleciona 'tamanho_torneio' indivíduos aleatórios da população
     indices_torneio = random.sample(range(len(populacao)), tamanho_torneio)
@@ -154,12 +154,12 @@ if __name__ == "__main__":
         # --- GERAÇÃO DE NOVOS INDIVÍDUOS ---
         while len(nova_populacao) < TAMANHO_POPULACAO:
             # 1. Seleção
-            pai1 = selecaoPorRanking(populacao, aptidoes, TAMANHO_TORNEIO)
-            pai2 = selecaoPorRanking(populacao, aptidoes, TAMANHO_TORNEIO)
+            pai1 = torneio(populacao, aptidoes, TAMANHO_TORNEIO)
+            pai2 = torneio(populacao, aptidoes, TAMANHO_TORNEIO)
             
             # Garante que os pais sejam diferentes
             while pai1 == pai2:
-                pai2 = selecaoPorRanking(populacao, aptidoes, TAMANHO_TORNEIO)
+                pai2 = torneio(populacao, aptidoes, TAMANHO_TORNEIO)
 
             # 2. Cruzamento (Crossover)
             filho1, filho2 = pmx(pai1, pai2)
