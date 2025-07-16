@@ -10,24 +10,23 @@ except FileNotFoundError:
 except Exception as e:
 	print("Error : {e}")
 
-# As linhas do arquivo contêm a parte triangular superior da matriz de distâncias
+
 indice_linha = 0
-for i in range(1, 58):  # Linhas 1 a 57 (não inclui a 58)
+for i in range(1, 58): 
     linha = linhas[indice_linha].strip()
     indice_linha += 1
 
-    lista = linha.split()  # Quebra a linha em uma lista de strings
+    lista = linha.split() 
 
-    for j in range(i + 1, 59):  # j vai de i+1 até 58
+    for j in range(i + 1, 59):
         if lista:
-            peso = int(lista.pop(0))  # Converte o peso para inteiro
+            peso = int(lista.pop(0))
             distancias[(i, j)] = peso
             distancias[(j, i)] = peso
         else:
             print(f"Erro! Linha {i} do arquivo não possui elementos suficientes.")
             exit()
 
-# Função que retorna o custo total de um caminho (ciclo fechado)
 def custoCaminho(permutacao, dicDistancias):
     soma = 0
     for i in range(len(permutacao) - 1):
@@ -38,10 +37,9 @@ def custoCaminho(permutacao, dicDistancias):
         else:
             print(f"Erro! ({a},{b}) não existe no dicionário!")
             exit()
-    soma += dicDistancias[(permutacao[-1], permutacao[0])]  # Volta ao início
+    soma += dicDistancias[(permutacao[-1], permutacao[0])]
     return soma
 
-# Gera uma população de caminhos aleatórios (permutação das cidades)
 def inicializaPopulacao(tamanho, qtdeCidades):
     import random
     lista = []
@@ -51,7 +49,6 @@ def inicializaPopulacao(tamanho, qtdeCidades):
         lista.append(individuo)
     return lista
 
-# Calcula o custo de cada indivíduo da população
 def calculaAptidao(populacao):
     listaAptidao = []
     for elem in populacao:
@@ -60,13 +57,11 @@ def calculaAptidao(populacao):
 
 def torneio(populacao, aptidoes, tamanho_torneio=3):
 
-    # Seleciona 'tamanho_torneio' indivíduos aleatórios da população
     indices_torneio = random.sample(range(len(populacao)), tamanho_torneio)
     
     melhor_individuo_indice = -1
     melhor_aptidao = 100000000000000000
 
-    # Encontra o melhor indivíduo (menor custo) entre os selecionados
     for i in indices_torneio:
         if aptidoes[i] < melhor_aptidao:
             melhor_aptidao = aptidoes[i]
@@ -74,36 +69,76 @@ def torneio(populacao, aptidoes, tamanho_torneio=3):
             
     return populacao[melhor_individuo_indice]
 
+def ox1(pai1, pai2):
+
+    tamanho = len(pai1)
+
+    ponto1, ponto2 = sorted(random.sample(range(tamanho), 2))
+
+    filho1 = [None] * tamanho
+    
+    subsequencia_pai1 = pai1[ponto1:ponto2]
+    filho1[ponto1:ponto2] = subsequencia_pai1
+
+    genes_a_preencher = []
+    for i in range(tamanho):
+        indice_pai2 = (ponto2 + i) % tamanho
+        gene = pai2[indice_pai2]
+        if gene not in subsequencia_pai1:
+            genes_a_preencher.append(gene)
+    
+    ponteiro_genes = 0
+    for i in range(tamanho):
+        indice_filho = (ponto2 + i) % tamanho
+        if filho1[indice_filho] is None:
+            filho1[indice_filho] = genes_a_preencher[ponteiro_genes]
+            ponteiro_genes += 1
+
+
+    filho2 = [None] * tamanho
+    
+    subsequencia_pai2 = pai2[ponto1:ponto2]
+    filho2[ponto1:ponto2] = subsequencia_pai2
+
+    genes_a_preencher = []
+    for i in range(tamanho):
+        indice_pai1 = (ponto2 + i) % tamanho
+        gene = pai1[indice_pai1]
+        if gene not in subsequencia_pai2:
+            genes_a_preencher.append(gene)
+    
+    ponteiro_genes = 0
+    for i in range(tamanho):
+        indice_filho = (ponto2 + i) % tamanho
+        if filho2[indice_filho] is None:
+            filho2[indice_filho] = genes_a_preencher[ponteiro_genes]
+            ponteiro_genes += 1
+
+    return filho1, filho2
+
 def pmx(pai1, pai2):
 
     tamanho = len(pai1)
     
-    # 1. Inicializa os filhos como cópias dos pais
     filho1, filho2 = pai1[:], pai2[:]
     
-    # 2. Escolhe dois pontos de corte aleatórios
     ponto1, ponto2 = sorted(random.sample(range(tamanho), 2))
     
-    # 3. Cria os mapeamentos a partir dos segmentos trocados
     mapa1_para_2 = {pai1[i]: pai2[i] for i in range(ponto1, ponto2)}
     mapa2_para_1 = {pai2[i]: pai1[i] for i in range(ponto1, ponto2)}
     
-    # 4. Troca os segmentos diretamente nos filhos
     filho1[ponto1:ponto2] = pai2[ponto1:ponto2]
     filho2[ponto1:ponto2] = pai1[ponto1:ponto2]
     
-    # 5. Corrige duplicatas no filho 1 (fora do segmento trocado)
     for i in list(range(ponto1)) + list(range(ponto2, tamanho)):
         while filho1[i] in mapa2_para_1:
             filho1[i] = mapa2_para_1[filho1[i]]
             
-    # 6. Corrige duplicatas no filho 2 (fora do segmento trocado)
     for i in list(range(ponto1)) + list(range(ponto2, tamanho)):
         while filho2[i] in mapa1_para_2:
             filho2[i] = mapa1_para_2[filho2[i]]
             
     return filho1, filho2
-
 
 def mutacaoSwap(individuo, taxa_mutacao=0.01):
 
@@ -113,15 +148,13 @@ def mutacaoSwap(individuo, taxa_mutacao=0.01):
     return individuo
 
 if __name__ == "__main__":
-    # Parâmetros do Algoritmo Genético
     TAMANHO_POPULACAO = 100
-    TAXA_ELITISMO = 0.1  # 10% dos melhores indivíduos são mantidos
-    TAXA_MUTACAO = 0.02  # Chance de 2% de mutação por indivíduo
+    TAXA_ELITISMO = 0.1 
+    TAXA_MUTACAO = 0.02  
     NUMERO_GERACOES = 500
     TAMANHO_TORNEIO = 3
     NUM_CIDADES = 58
 
-    # --- INICIALIZAÇÃO ---
     print("Iniciando o Algoritmo Genético para o problema das 58 cidades do Brasil...")
     populacao = inicializaPopulacao(TAMANHO_POPULACAO, NUM_CIDADES)
     aptidoes = calculaAptidao(populacao)
