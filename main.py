@@ -10,7 +10,6 @@ except FileNotFoundError:
 except Exception as e:
 	print("Error : {e}")
 
-
 indice_linha = 0
 for i in range(1, 58): 
     linha = linhas[indice_linha].strip()
@@ -162,12 +161,10 @@ if __name__ == "__main__":
     melhor_caminho_global = None
     melhor_custo_global = 100000000000000000000
 
-    # --- LOOP PRINCIPAL DAS GERAÇÕES ---
     for geracao in range(NUMERO_GERACOES):
-        # Combina população e aptidões para ordenação
+
         populacao_avaliada = sorted(zip(populacao, aptidoes), key=lambda item: item[1])
 
-        # Atualiza o melhor resultado global encontrado até agora
         custo_atual = populacao_avaliada[0][1]
         if custo_atual < melhor_custo_global:
             melhor_custo_global = custo_atual
@@ -178,39 +175,30 @@ if __name__ == "__main__":
 
         nova_populacao = []
 
-        # --- ELITISMO ---
-        # Mantém os melhores indivíduos da geração atual na próxima
         tamanho_elite = int(TAMANHO_POPULACAO * TAXA_ELITISMO)
         for i in range(tamanho_elite):
             nova_populacao.append(populacao_avaliada[i][0])
 
-        # --- GERAÇÃO DE NOVOS INDIVÍDUOS ---
         while len(nova_populacao) < TAMANHO_POPULACAO:
-            # 1. Seleção
             pai1 = torneio(populacao, aptidoes, TAMANHO_TORNEIO)
             pai2 = torneio(populacao, aptidoes, TAMANHO_TORNEIO)
             
-            # Garante que os pais sejam diferentes
             while pai1 == pai2:
                 pai2 = torneio(populacao, aptidoes, TAMANHO_TORNEIO)
 
-            # 2. Cruzamento (Crossover)
-            filho1, filho2 = pmx(pai1, pai2)
+            filho1, filho2 = ox1(pai1, pai2)
 
-            # 3. Mutação
             filho1 = mutacaoSwap(filho1, TAXA_MUTACAO)
             filho2 = mutacaoSwap(filho2, TAXA_MUTACAO)
 
             nova_populacao.append(filho1)
-            # Adiciona o segundo filho apenas se houver espaço
+
             if len(nova_populacao) < TAMANHO_POPULACAO:
                 nova_populacao.append(filho2)
 
-        # Atualiza a população e calcula as novas aptidões
         populacao = nova_populacao
         aptidoes = calculaAptidao(populacao)
 
-    # --- RESULTADOS FINAIS ---
     print("\n--- O Algoritmo Genético foi concluído! ---")
     print(f"Melhor custo total encontrado: {melhor_custo_global}")
     print(f"Melhor caminho (permutação de cidades): \n{melhor_caminho_global}")
